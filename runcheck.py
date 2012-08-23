@@ -3,10 +3,8 @@ from sys import maxint as MAXINT
 
 MINUTES = 15;
 SENDMINUTES = 15;
-
 LOOPTIMER = '/tmp/time'
 SENDMAILTIMER = '/tmp/sendtime'
-
 
 """Using pgrep searches for processes which have "key" as a substring."""
 def getPIDList(key):

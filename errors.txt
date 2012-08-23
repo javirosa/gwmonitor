@@ -1,0 +1,24 @@
+No files exist
+Also does TCPDUMP not have a device specified?
+
+tcpdump: no suitable device found
+Traceback (most recent call last):
+  File "loop.py", line 80, in <module>
+    capture()
+  File "loop.py", line 42, in capture
+    if (os.path.getsize('/tmp/cap/capture.pcap')>3000000) or (difference > 86400):
+  File "/usr/lib/python2.7/genericpath.py", line 49, in getsize
+    return os.stat(filename).st_size
+OSError: [Errno 2] No such file or directory: '/tmp/cap/capture.pcap'
+
+Sendmail seems to just hang?
+
+javirosa@blacktop:~/projects/gwmonitor$ python sendmail.py 
+Traceback (most recent call last):
+  File "sendmail.py", line 81, in <module>
+    loop()
+  File "sendmail.py", line 63, in loop
+    for file in os.listdir(rootdir):
+OSError: [Errno 2] No such file or directory: '/tmp/send/'
+javirosa@blacktop:~/projects/gwmonitor$ vim errors.txt 
+

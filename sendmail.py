@@ -8,7 +8,7 @@ import daemonize
 
 SMTP_USER = "monitoring@green-wifi.com"
 SMTP_PWD = "green4chuuk"
-EMAIL_TO = "nbehdin@berkeley.edu"
+EMAIL_TO = "javirosa1912@berkeley.edu"
 
 SENDMAILTIMER = "/tmp/sendtime"
 SENDDIR = "/tmp/send/"
@@ -59,26 +59,26 @@ def loop():
 		f.write("%100.100s"%(str(time.mktime(time.localtime()))))
 		f.seek(0,0)
 	#	for subdir, dirs, files in os.walk(rootdir):
-			
-		for file in os.listdir(rootdir):
-			print "second for"
-			filename = rootdir + file
-			print file
-			mail(EMAIL_TO,
-				time.strftime( "%Y-%m-%d___%H-%M-%S"),
-			"test",
-			filename)
-			print "past mail"
-			os.remove(filename)
-			f=open(SENDMAILTIMER, 'w')
-			f.write("%100.100s"%(str(time.mktime(time.localtime()))))
-			f.seek(0,0)
-        time.sleep(.001)
+		if os.path.exists(rootdir):
+			for mailFile in os.listdir(rootdir):
+				filename = rootdir + mailFile
+				print "Sending file %s"%(filename)
+				#TODO handle failure to contact server, etc
+				mail(EMAIL_TO,
+					time.strftime( "%Y-%m-%d___%H-%M-%S"),
+					"test",
+					filename)
+				print "file %s sent."%(filename)
+				os.remove(filename)
+				f=open(SENDMAILTIMER, 'w')
+				f.write("%100.100s"%(str(time.mktime(time.localtime()))))
+				f.seek(0,0)
+        time.sleep(.01)
 		
 	f.close()		
 
 if __name__ == "__main__":
-	#retCode = daemonize.createDaemon()
+	retCode = daemonize.createDaemon()
 	loop()
 	sys.exit(retCode)
 	

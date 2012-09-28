@@ -33,32 +33,28 @@ def timeElapsed(timer,unsetdefault=MAXINT):
 	else:
 		return unsetdefault
 
-difference = timeElapsed(LOOPTIMER,MINUTES*60+1)
+def main():
+	print "checking loop.py"
+	#If loop.py hasn't updated its timer in awhile kill and restart it
+	difference = timeElapsed(LOOPTIMER,MINUTES*60+1)
+	if difference > MINUTES * 60:
+		pidlist = getPIDList("tcpdump") + getPIDList("loop.py")
+		killProcesses(pidlist)
+		os.popen("python loop.py")
 
-#If loop.py hasn't updated its timer in awhile kill and restart it
-if difference > MINUTES * 60:
-	pidlist = getPIDList("tcpdump") + getPIDList("loop.py")
-	killProcesses(pidlist)
-	os.popen("python loop.py")
+	print "checking sendmail.py"
+	#If sendmail.py hasn't updated its timer in awhile kill and restart it
+	difference = timeElapsed(SENDMAILTIMER,SENDMINUTES*60+1)
+	if difference > SENDMINUTES * 60:
+		pidlist = getPIDList("sendmail.py")
+		killProcesses(pidlist)
+		os.popen("python sendmail.py")
 
-#If loop.py hasn't updated its timer in awhile kill and restart it
-difference = timeElapsed(SENDMAILTIMER,SENDMINUTES*60+1)
-
-if difference > SENDMINUTES * 60:
+	#TODO Why is this here? 
 	pidlist = getPIDList("sendmail.py")
-	killProcesses(pidlist)
-	os.popen("python sendmail.py")
+	if len(pidlist)>1:
+		killProcesses(pidlist)
 
-#	subprocess.Popen("killall -q tcpdump".split(" "), shell=False)
-#	subprocess.Popen("killall -q foo".split(" "), shell=False)
-	
-#	time.sleep(10)
-	
-#	subprocess.Popen("killall -9 -q tcpdump".split(" "), shell=False)
-#	subprocess.Popen("killall -9 -q foo".split(" "), shell=False)
-	
-#	subprocess.Popen()
-pidlist = getPIDList("sendmail.py")
-if len(pidlist)>1:
-	killProcesses(pidlist)
+if __name__ == "__main__":
+	main()
 	

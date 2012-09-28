@@ -5,6 +5,7 @@ import daemonize
 CAPSIZE = 70
 SENDDIR = "/tmp/send/"
 CAPDIR = "/tmp/cap/"
+MAXSIZE=30000 #3000000
 
 def initializecapture():
 	if not os.path.exists(SENDDIR):
@@ -36,7 +37,7 @@ def capture():
 		difference = 0
 	
 	
-	if (os.path.getsize('/tmp/cap/capture.pcap')>3000000) or (difference > 86400):
+	if (os.path.getsize('/tmp/cap/capture.pcap')>MAXSIZE) or (difference > 86400):
 		f = open('/tmp/pid', 'r')
 		#kill old tcpdump process
 		pid = f.read()
@@ -66,15 +67,14 @@ def capture():
 		f=open('/tmp/time', 'w')
 		f.write("%100.100s"%(str(time.mktime(time.localtime()))))
 		f.close()
-		time.sleep(5)
 		
 if __name__ == "__main__":
 
-	#retCode = daemonize.createDaemon()
+	retCode = daemonize.createDaemon()
 
 	initializecapture()
 	while 1:
 		capture()
-        time.sleep(.001)
+		time.sleep(5)
 	sys.exit(retCode)
 

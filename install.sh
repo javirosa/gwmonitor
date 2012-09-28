@@ -3,7 +3,7 @@
 #Uses ssh to execute installation commands on the remote RS
 
 IP=$1
-if [ ! -n $1 ]
+if [ ! -n "$1" ]
 then
     IP="192.168.1.20"
 fi
@@ -15,7 +15,7 @@ TMP="root.crontab.bak"
 CRONJOB='    *        *          *             *               *           python /root/runcheck.py'
 CRONPATH="/etc/crontabs/root"
 
-echo IP:$1
+echo IP:"$IP"
 
 #Copy files
 scp $FILES root@$IP:"$INSTALL_DIR"
@@ -26,7 +26,7 @@ if egrep $CHECKER $TMP >>/dev/null
 then
     echo "Already installed please remove the line with $CHECKER in the $CRONPATH file and delete $FILES from $INSTALL_DIR directory."
 else
-    ssh root@"$IP" echo "$CRONJOB" >> "$CRONPATH"
+    echo #ssh root@"$IP" "echo \"$CRONJOB\" >> \"$CRONPATH\""
 fi
-ssh root@"$IP" reboot
+#ssh root@"$IP" "/sbin/reboot"
 rm "$TMP"

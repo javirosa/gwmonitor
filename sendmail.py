@@ -6,8 +6,8 @@ from email import Encoders
 import os, subprocess, time
 import daemonize
 
-SMTP_USER = ""
-SMTP_PWD = ""
+SMTP_USER = "monitoring@green-wifi.com"
+SMTP_PWD = "green4chuuk"
 EMAIL_TO = "nbehdin@berkeley.edu"
 
 SENDMAILTIMER = "/tmp/sendtime"
@@ -73,6 +73,7 @@ def loop():
 			f=open(SENDMAILTIMER, 'w')
 			f.write("%100.100s"%(str(time.mktime(time.localtime()))))
 			f.seek(0,0)
+        time.sleep(.001)
 		
 	f.close()		
 

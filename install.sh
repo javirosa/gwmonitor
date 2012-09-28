@@ -3,6 +3,11 @@
 #Uses ssh to execute installation commands on the remote RS
 
 IP=$1
+if [ ! -n $1 ]
+then
+    IP="192.168.1.20"
+fi
+
 INSTALL_DIR="/root/"
 FILES="loop.py runcheck.py sendmail.py daemonize.py"
 CHECKER="runcheck.py"
@@ -23,4 +28,5 @@ then
 else
     ssh root@"$IP" echo "$CRONJOB" >> "$CRONPATH"
 fi
+ssh root@"$IP" reboot
 rm "$TMP"

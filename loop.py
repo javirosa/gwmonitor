@@ -75,5 +75,6 @@ if __name__ == "__main__":
 	initializecapture()
 	while 1:
 		capture()
+        time.sleep(.001)
 	sys.exit(retCode)
 

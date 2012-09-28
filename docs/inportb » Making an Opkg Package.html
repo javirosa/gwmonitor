@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html dir="ltr" lang="en-US"><head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<meta charset="UTF-8">
+
+<title>inportb » Making an Opkg Package</title>
+
+
+<!-- leave this for stats please -->
+<link rel="shortcut icon" type="image/x-icon" href="http://inportb.com/wp-content/themes/desk/favicon.ico">
+<link href="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/style.css" media="screen" rel="stylesheet" type="text/css">
+
+
+
+		
+	
+<link rel="alternate" type="application/rss+xml" title="inportb » Feed" href="http://inportb.com/feed/">
+<link rel="alternate" type="application/rss+xml" title="inportb » Comments Feed" href="http://inportb.com/comments/feed/">
+<link rel="alternate" type="application/rss+xml" title="inportb » Making an Opkg Package Comments Feed" href="http://inportb.com/2010/10/19/making-an-opkg-package/feed/">
+<script type="text/javascript" src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/jquery.js"></script>
+<script type="text/javascript" src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/comment-reply.js"></script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="http://inportb.com/xmlrpc.php?rsd">
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="http://inportb.com/wp-includes/wlwmanifest.xml"> 
+<link rel="prev" title="Debian Packages on Android Phones" href="http://inportb.com/2010/10/17/debian-packages-on-android-phones/">
+<link rel="next" title="Package Management with Opkg" href="http://inportb.com/2010/10/19/package-management-with-opkg/">
+<meta name="generator" content="WordPress 3.4.2">
+<link rel="canonical" href="http://inportb.com/2010/10/19/making-an-opkg-package/">
+<link rel="shortlink" href="http://inportb.com/?p=744">
+<script>try {  for(var lastpass_iter=0; lastpass_iter < document.forms.length; lastpass_iter++){    var lastpass_f = document.forms[lastpass_iter];    if(typeof(lastpass_f.lpsubmitorig)=="undefined"){      if (typeof(lastpass_f.submit) == "function") {        lastpass_f.lpsubmitorig = lastpass_f.submit;        lastpass_f.submit = function(){          var form = this;          try {            if (document.documentElement && 'createEvent' in document)            {              var forms = document.getElementsByTagName('form');              for (var i=0 ; i<forms.length ; ++i)                if (forms[i]==form)                {                  var element = document.createElement('lpformsubmitdataelement');                  element.setAttribute('formnum',i);                  element.setAttribute('from','submithook');                  document.documentElement.appendChild(element);                  var evt = document.createEvent('Events');                  evt.initEvent('lpformsubmit',true,false);                  element.dispatchEvent(evt);                  break;                }            }          } catch (e) {}          try {            form.lpsubmitorig();          } catch (e) {}        }      }    }  }} catch (e) {}</script></head>
+<body class="single single-post postid-744 single-format-standard">
+
+
+<div id="container">
+<div id="navdiv">
+
+
+		
+					<div class="nav"><ul><li class="page_item page-item-5"><a href="http://inportb.com/about/">About</a></li><li class="page_item page-item-219"><a href="http://inportb.com/inportb/">inportb</a></li><li class="page_item page-item-8"><a href="http://inportb.com/projects/">Projects</a><ul class="children"><li class="page_item page-item-19"><a href="http://inportb.com/projects/columbia-scheduler/">Columbia Scheduler</a></li><li class="page_item page-item-74"><a href="http://inportb.com/projects/ialbum/">iAlbum</a></li><li class="page_item page-item-10"><a href="http://inportb.com/projects/imagine/">Imagine</a></li><li class="page_item page-item-86"><a href="http://inportb.com/projects/unicache/">Unicache</a></li></ul></li></ul></div>
+
+		<div id="rss">
+	
+		<a href="http://inportb.com/feed/rss/" title="rss feed"><img alt="feed icon" src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/feed-icon.png" height="28" width="28"></a>
+	</div><!-- /rss --> 	<div class="clear"></div><!-- /clear -->
+<!-- /navwrap -->
+</div><!-- /navdiv -->
+
+<div class="push"></div>
+
+<div id="wrapper">
+	<div id="header">
+		
+		<h1><a href="http://inportb.com/">inportb</a></h1>
+		<h2>salty nothings are yummier</h2>
+		
+		</div>
+	<div id="content">
+<div id="post">
+		<div id="post-744" class="post-744 post type-post status-publish format-standard hentry category-android category-computing category-hacks">
+		<div class="posthead">
+			<h2>Making an Opkg Package			</h2><p class="postauthor">By <a href="http://inportb.com/author/admin/" title="Posts by Jiang Yio" rel="author">Jiang Yio</a></p>
+			<div class="dater">
+				Tuesday, October 19, 2010</div>
+		</div>
+		<div class="entry">
+						<p>Now that we have Opkg for Android, we could use it to install 
+packages from local files or off Web servers. Installing a package is as
+ simple as</p>
+<blockquote><p><code>opkg install path/to/package.opk</code></p></blockquote>
+<p>or, if it’s on the Web</p>
+<blockquote><p><code>opkg install http://host/path/to/package.opk</code></p></blockquote>
+<p>And to remove the package, we would go</p>
+<blockquote><p><code>opkg remove name-of-package</code></p></blockquote>
+<p>But what if we wanted to share our own software with others? In this 
+case, we would create our own packages. An Opkg package is essentially a
+ Debian package with fewer control fields. If you know how to make a 
+Debian package, you should be well on your way. In general, a package is
+ an <em>ar</em> archive containing a control tarball, a data tarball, 
+and a debian-binary file. For example let’s have a look at the 
+opkg-hello package:</p>
+<p><span id="more-744"></span><br>
+</p><blockquote><code>package.opk	(ar)<br>
++- debian-binary	(text)<br>
++- control.tar.gz	(tarball)<br>
+...+- control	(text)<br>
+...+- preinst	(script)<br>
+...+- postinst	(script)<br>
+...+- prerm		(script)<br>
+...+- postrm	(script)<br>
++- data.tar.gz	(tarball)<br>
+...+- system<br>
+......+- bin<br>
+.........+- opkg-hello	(example program)</code><p></p></blockquote>
+<p>Now, <em>debian-binary</em> simply contains the string <em>2.0</em>; it signifies that the archive is indeed a Debian[esque] package. The files within <em>control.tar.gz</em>
+ are cached when the package is installed, and contain information about
+ the package itself, how the package is to be installed, and how the 
+package is to be removed. The contents of <em>control</em> describe the 
+package and are used to build the repository feed, which we will cover 
+later. There are also scripts that govern the installation and removal 
+processes and require execution permission: <em>preinst</em> runs before the package is extracted, <em>postinst</em> performs any configuration after the main files are in place, <em>prerm</em> prepares the system before the package is removed, and <em>postrm</em> cleans up after the main files are gone. Let’s have a look inside these files:</p>
+<blockquote><p><em>control</em><br>
+<code>Package: opkg-hello<br>
+Version: 0.0.1<br>
+Description: Sample OPKG package<br>
+Section: cyanogenmod/applications<br>
+Priority: optional<br>
+Maintainer: Jiang Yio<br>
+Architecture: all<br>
+Homepage: http://inportb.com/<br>
+Source:<br>
+Depends:</code></p></blockquote>
+<blockquote><p><em>preinst</em><br>
+<code>#!/system/bin/sh<br>
+echo "preinst: preparing to install package"<br>
+mount -o remount,rw -t yaffs2 /dev/block/mtdblock3 /system</code></p></blockquote>
+<blockquote><p><em>postinst</em><br>
+<code>#!/system/bin/sh<br>
+mount -o ro,remount -t yaffs2 /dev/block/mtdblock3 /system<br>
+echo "postinst: installed package"</code></p></blockquote>
+<blockquote><p><em>prerm</em><br>
+<code>#!/system/bin/sh<br>
+echo "prerm: preparing to remove package"<br>
+mount -o remount,rw -t yaffs2 /dev/block/mtdblock3 /system</code></p></blockquote>
+<blockquote><p><em>postrm</em><br>
+<code>#!/system/bin/sh<br>
+mount -o ro,remount -t yaffs2 /dev/block/mtdblock3 /system<br>
+echo "postrm: removed package"</code></p></blockquote>
+<p>Other than emitting some debugging information, the scripts also make the <em>/system</em> tree writable while the package is installed or removed.</p>
+<p>Now that we have the anatomy of an Opkg package, we could create more like it with ease. Here are a couple of helpful commands:</p>
+<blockquote><p><em>make a tarball</em><br>
+<code>tar zcvf name-of-tarball.tar.gz list of files and directories</code></p></blockquote>
+<blockquote><p><em>make an archive</em><br>
+<code>ar -r name-of-archive.opk list of files and directories</code></p></blockquote>
+<p>Other than that, just be sure all the files have the right owner, 
+group, and permission. It would also help to know something about the 
+Android directory tree — for example, we dropped the example program in <em>/system/bin</em>, which we know is part of the search path.</p>
+</div>
+			
+			<div class="clear"></div>
+	</div>
+	<p class="postmetadata">	<span class="cats">Posted in <a href="http://inportb.com/category/android/" title="View all posts in Android" rel="category tag">Android</a>, <a href="http://inportb.com/category/computing/" title="View all posts in Computing" rel="category tag">Computing</a>, <a href="http://inportb.com/category/hacks/" title="View all posts in Hacks" rel="category tag">Hacks</a></span> | 	<span class="comments"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comments" title="Comment on Making an Opkg Package">17 Comments »</a>	</span></p>
+	
+			
+
+<div id="commentbox">
+<h3 id="comments">17 Comments</h3>
+
+<ol class="commentlist">		<li class="comment even thread-even depth-1" id="comment-2504">
+				<div id="div-comment-2504" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2504">
+			November 5, 2010 at 9:42 pm</a>		</div>
+
+		<p>Here is a script that will build an opkg package. <a href="http://bit.ly/cuUlrr" rel="nofollow">http://bit.ly/cuUlrr</a><br>
+It was an ipkg script before. I made some minor changes now it drops opk.</p>
+<p>example:<br>
+mkdir FILE &amp;&amp; mkdir FILE/CONTROL &amp;&amp; mkdir FILE/system &amp;&amp; mkdir FILE/system/bin</p>
+<p>touch FILE/CONTROL/control &amp;&amp; touch FILE/CONTROL/preinstall and so on… put your things in.</p>
+<p>than set the owner:<br>
+chown -hR root:root FILE</p>
+<p>finaly:<br>
+./opkg-build.sh FILE</p>
+<p>packed is ready to install</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2504#respond" onclick='return addComment.moveForm("div-comment-2504", "2504", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2505">
+				<div id="div-comment-2505" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn"><a href="http://inportb.com/" rel="external nofollow" class="url">Jiang</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2505">
+			November 6, 2010 at 12:00 am</a>		</div>
+
+		<p>Thanks for sharing this. Also worth noting is that Opkg knows how to work with Ipkg packages.</p>
+<p>Some devices require that parts of the filesystem be remounted 
+read-write before Opkg could do its work. My distribution has a 
+/system/bin/opkg script that takes care of the remounting before and 
+after running /system/bin/opkg-cl. I have noticed that letting packages 
+manage the mounting is not very portable and leads to problems when many
+ packages are installed together.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2505#respond" onclick='return addComment.moveForm("div-comment-2505", "2505", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-2506">
+				<div id="div-comment-2506" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2506">
+			November 6, 2010 at 4:22 am</a>		</div>
+
+		<p>Whats the exact problem, if I do the mounting stuff in the contol 
+files? I made only some packages with binarys for /system/bin until now.
+ I have set up an experimental repo in my dropbox. Its made for 
+android-1.6.</p>
+<p>I have seen you packaged a lot of gapps. I guess, I should check out these.</p>
+<p>Would you pass me your opkg-wrapper script? So I wouldnt run in the same trouble.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2506#respond" onclick='return addComment.moveForm("div-comment-2506", "2506", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2507">
+				<div id="div-comment-2507" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn"><a href="http://inportb.com/" rel="external nofollow" class="url">Jiang</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2507">
+			November 8, 2010 at 12:38 am</a>		</div>
+
+		<p>Check this out (/usr/bin/opkg)…</p>
+<blockquote><p><code>#!/system/bin/sh<br>
+mount -o remount,rw /<br>
+mount -o remount,rw /system<br>
+/system/bin/opkg-cl $@<br>
+mount -o ro,remount /system<br>
+mount -o ro,remount /</code></p></blockquote>
+<p>When you manipulate multiple packages, control scripts are run before and after <em>all the packages</em>
+ have been unpacked or removed. I had some trouble with remounting the 
+filesystem read-only 20 times in a row, which lead to errors <img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/icon_smile.gif" alt=":)" class="wp-smiley"> </p>
+<p>Also, I don’t trust these gapps packages. They were built for testing
+ purposes (and to demonstrate delivery of APK’s via Opkg), but some of 
+them may not be perfect. I built them in bulk using a script.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2507#respond" onclick='return addComment.moveForm("div-comment-2507", "2507", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-2508">
+				<div id="div-comment-2508" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2508">
+			November 8, 2010 at 1:27 pm</a>		</div>
+
+		<p>Yeah thats true… but in case some uses the command opkg-cl we need to check whether it rw or ro</p>
+<p>I put something like this in my preinstall and preremove:</p>
+<p>#!/system/bin/sh</p>
+<p>if [ "$(busybox grep -il /system.*rw /proc/mounts &gt; /dev/null;echo $?)" != "0" ];then<br>
+	mount -o remount,rw /system<br>
+fi<br>
+echo “postinst: installed package”</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2508#respond" onclick='return addComment.moveForm("div-comment-2508", "2508", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2509">
+				<div id="div-comment-2509" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn"><a href="http://inportb.com/" rel="external nofollow" class="url">Jiang</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2509">
+			November 9, 2010 at 1:32 pm</a>		</div>
+
+		<p>That’s a good idea. Incidentally, <a href="http://code.google.com/p/opkg/issues/detail?id=67" rel="nofollow">http://code.google.com/p/opkg/issues/detail?id=67</a></p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2509#respond" onclick='return addComment.moveForm("div-comment-2509", "2509", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-2510">
+				<div id="div-comment-2510" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2510">
+			November 10, 2010 at 7:19 am</a>		</div>
+
+		<p>great… where do you want to put the tmp folder in?</p>
+<p>I made a repository with all the DRC83 gapps from this server: <a href="http://cyanogenmod-mirror.local.host.name/gapps/" rel="nofollow">http://cyanogenmod-mirror.local.host.name/gapps/</a> they are for 1.6, but its just for testing to figure out what depends on what. This is my current Package file: <a href="http://bit.ly/9iQOSS" rel="nofollow">http://bit.ly/9iQOSS</a></p>
+<p>I think we need some standarts for the names and sections of all these packages.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2510#respond" onclick='return addComment.moveForm("div-comment-2510", "2510", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2511">
+				<div id="div-comment-2511" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn"><a href="http://inportb.com/" rel="external nofollow" class="url">Jiang</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2511">
+			November 10, 2010 at 1:22 pm</a>		</div>
+
+		<p>Good job with the repo. I see you have quite a few goodies in there.</p>
+<p>I think it makes sense to put temporary files somewhere in /cache, 
+since that’s what /cache is used for. On the other hand, config files 
+might be better off under /system/etc. The only reason I didn’t put them
+ there to begin with is that /system is usually read-only and I was in a
+ hurry.</p>
+<p>Package naming does need standardization. So far, for “core” packages
+ I’d just call it the name of the program. For third-party packages, I’d
+ do something like vendor-name. And if it’s part of a collection, I’d do
+ collection-name or vendor-collection-name. Architectures might need 
+standardization too. We could use architectures to target not only 
+specific processor architectures, but also specific screen resolutions 
+and specific versions of the Android OS.</p>
+<p>So… we might need a community-editable wiki <img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/icon_biggrin.gif" alt=":D" class="wp-smiley"> </p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2511#respond" onclick='return addComment.moveForm("div-comment-2511", "2511", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-2512">
+				<div id="div-comment-2512" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2512">
+			November 11, 2010 at 11:54 am</a>		</div>
+
+		<p>I had a look in the files of googles ndk, the complier can deal 
+with armeabi and armeabi-v7a so we should use this for the arch.conf. 
+Its in the NDKROOT/build/toolchains/arm-eabi-4.4.0/config.mk file.</p>
+<p>The wiki is a good idea. I dont have a webserver, if you want, feel free to set one up. <img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/icon_smile.gif" alt=":)" class="wp-smiley"> </p>
+<p>The android version should we manage over the repository, as I know, 
+there is only one declaration for a package allowed. But it isn’t a 
+problem for a maintainer to separate this stuff in the repository url. 
+Instead we could give an option for the used board/device, because of 
+specific things like camera drivers and stuff.</p>
+<p>Here is a idea for the example config files: <a href="http://bit.ly/c5cTny" rel="nofollow">http://bit.ly/c5cTny</a></p>
+<p>Ok, tmp goes in /cache config and binarys in /system. And the 
+–with-opkglibdir= option? It places the package index there, so it must 
+be writeable. I would say /data/local/lib</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2512#respond" onclick='return addComment.moveForm("div-comment-2512", "2512", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2513">
+				<div id="div-comment-2513" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2513">
+			November 12, 2010 at 3:02 pm</a>		</div>
+
+		<p>Here is a update.zip with the old syntax: <a href="http://bit.ly/abooNt" rel="nofollow">http://bit.ly/abooNt</a></p>
+<p>It installs Opkg, an improved version of your remount script, wget 
+and the config files. I couldnt figure out how to link curl an openssl. 
+Its just a basic version.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2513#respond" onclick='return addComment.moveForm("div-comment-2513", "2513", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-2514">
+				<div id="div-comment-2514" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn"><a href="http://inportb.com/" rel="external nofollow" class="url">Jiang</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2514">
+			November 15, 2010 at 9:22 pm</a>		</div>
+
+		<p>Alright so… I’ve put up a <a href="http://wiki.inportb.com/wiki/Projects:Android:Opkg" rel="nofollow">wiki page</a>.
+ I decided to require registration for spam control, but that should be 
+pretty painless anyway (until I figure out how to integrate it with 
+OpenID or this blog, or something)…</p>
+<p>Ah, I haven’t tried cURL/OpenSSL in a while because the resulting 
+build didn’t work exactly right for me. The configuration script should 
+point you at some –with-* options, and you’ll have to link in the 
+relevant libraries during the final step. For cURL, I remember I had to 
+compile my own static libcurl without gssapi (which is only available as
+ a shared library). Eventually, this should not be a problem once we get
+ shared libraries working.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2514#respond" onclick='return addComment.moveForm("div-comment-2514", "2514", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-2515">
+				<div id="div-comment-2515" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/196c7307656e477d68f006724cba7a4a.png">		<cite class="fn">8ut8f8rder</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2515">
+			November 19, 2010 at 8:49 am</a>		</div>
+
+		<p>I made an account for the wiki. I will add my stuff, should I get it compiled in the ndk.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2515#respond" onclick='return addComment.moveForm("div-comment-2515", "2515", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-2516">
+				<div id="div-comment-2516" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn"><a href="http://inportb.com/" rel="external nofollow" class="url">Jiang</a></cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-2516">
+			November 22, 2010 at 8:39 am</a>		</div>
+
+		<p>Thanks; I would love to see how that turns out. I haven’t touched the NDK yet.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=2516#respond" onclick='return addComment.moveForm("div-comment-2516", "2516", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-3367">
+				<div id="div-comment-3367" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/2d86dee5ddd796741c7b7ac1623934ca.png">		<cite class="fn">Gilles</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-3367">
+			June 24, 2011 at 6:57 am</a>		</div>
+
+		<p>Thanks for the tutorial. I’ve never built packages before (Debian, 
+or otherwise), and followed it step-by-step to build my first Opkg 
+package, but it fails installing: “Collected errors: * 
+pkg_init_from_file: Malformed package file package.opk.”</p>
+<p>I removed the two empty lines in “control” (Source and Depends), to no avail.</p>
+<p>Incidently, this is on an appliance running uClinux.</p>
+<p>Any hint appreciated.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=3367#respond" onclick='return addComment.moveForm("div-comment-3367", "3367", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment byuser comment-author-admin bypostauthor even thread-even depth-1" id="comment-3371">
+				<div id="div-comment-3371" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/18c2b53df589673a7f4fb042e5351766.jpeg">		<cite class="fn">Jiang</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-3371">
+			June 24, 2011 at 10:08 am</a>		</div>
+
+		<p>The error message is quite generic. I’d find some prebuilt packages
+ (OpenWrt has lots!), unpack them, and use them for reference.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=3371#respond" onclick='return addComment.moveForm("div-comment-3371", "3371", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment odd alt thread-odd thread-alt depth-1" id="comment-15425">
+				<div id="div-comment-15425" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/3eecffed17b5aa87b187705e2ce6984c.png">		<cite class="fn">mateor</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-15425">
+			April 11, 2012 at 1:08 pm</a>		</div>
+
+		<p>ok, thanks for the info. Sounds easy from here…we’ll see.</p>
+<p>Smiley Face/Winky  Face/Sad Face<br>
+                          /\      /\<br>
+                          I        I<br>
+                      emoticons</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=15425#respond" onclick='return addComment.moveForm("div-comment-15425", "15425", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+		<li class="comment even thread-even depth-1" id="comment-15429">
+				<div id="div-comment-15429" class="comment-body">
+				<div class="comment-author vcard">
+		<img src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/3eecffed17b5aa87b187705e2ce6984c.png">		<cite class="fn">mateor</cite> <span class="says">says:</span>		</div>
+
+		<div class="comment-meta commentmetadata"><a href="http://inportb.com/2010/10/19/making-an-opkg-package/#comment-15429">
+			April 11, 2012 at 1:38 pm</a>		</div>
+
+		<p>oh. Success.</p>
+<p>Happy face.</p>
+
+		<div class="reply">
+		<a class="comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/?replytocom=15429#respond" onclick='return addComment.moveForm("div-comment-15429", "15429", "respond", "744")'><small>Reply</small></a>		</div>
+				</div>
+		</li>
+</ol>
+
+	<div class="navigation page-link commentpage">
+			 
+	</div>
+	</div>
+	
+								<div id="respond">
+				<h3 id="reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="http://inportb.com/2010/10/19/making-an-opkg-package/#respond" style="display:none;"><small>Cancel reply</small></a></small></h3>
+									<form action="http://inportb.com/wp-comments-post.php" method="post" id="commentform">
+																										<p><input name="author" id="author" size="22" tabindex="1" aria-required="true" type="text"><label for="author"><small> Name</small></label></p>
+<p><input name="email" id="email" size="22" tabindex="2" aria-required="true" type="text"><label for="email"><small> Mail (will not be published)</small></label></p>
+<p><input name="url" id="url" size="22" tabindex="3" type="text"><label for="url"><small> Website</small></label></p>
+												<p class="comment-form-comment"><textarea id="comment" name="comment" cols="45" rows="8" aria-required="true"></textarea></p>												<p class="form-submit">
+							<input name="submit" id="submit" value="Post Comment" type="submit">
+							<input name="comment_post_ID" value="744" id="comment_post_ID" type="hidden">
+<input name="comment_parent" id="comment_parent" value="0" type="hidden">
+						</p>
+						<p style="display: none;"><input id="akismet_comment_nonce" name="akismet_comment_nonce" value="899d193079" type="hidden"></p>					</form>
+							</div><!-- #respond -->
+						
+
+	
+	</div>
+
+<div id="sidebar">
+		<ul>
+<li id="archives-3" class="widget widget_archive"><h2 class="widgettitle">Archives</h2>
+		<ul>
+			<li><a href="http://inportb.com/2012/09/" title="September 2012">September 2012</a></li>
+	<li><a href="http://inportb.com/2012/07/" title="July 2012">July 2012</a></li>
+	<li><a href="http://inportb.com/2012/06/" title="June 2012">June 2012</a></li>
+	<li><a href="http://inportb.com/2012/05/" title="May 2012">May 2012</a></li>
+	<li><a href="http://inportb.com/2012/04/" title="April 2012">April 2012</a></li>
+	<li><a href="http://inportb.com/2012/01/" title="January 2012">January 2012</a></li>
+	<li><a href="http://inportb.com/2011/12/" title="December 2011">December 2011</a></li>
+	<li><a href="http://inportb.com/2011/10/" title="October 2011">October 2011</a></li>
+	<li><a href="http://inportb.com/2011/08/" title="August 2011">August 2011</a></li>
+	<li><a href="http://inportb.com/2011/06/" title="June 2011">June 2011</a></li>
+	<li><a href="http://inportb.com/2011/05/" title="May 2011">May 2011</a></li>
+	<li><a href="http://inportb.com/2011/04/" title="April 2011">April 2011</a></li>
+	<li><a href="http://inportb.com/2011/02/" title="February 2011">February 2011</a></li>
+	<li><a href="http://inportb.com/2011/01/" title="January 2011">January 2011</a></li>
+	<li><a href="http://inportb.com/2010/12/" title="December 2010">December 2010</a></li>
+	<li><a href="http://inportb.com/2010/11/" title="November 2010">November 2010</a></li>
+	<li><a href="http://inportb.com/2010/10/" title="October 2010">October 2010</a></li>
+	<li><a href="http://inportb.com/2010/09/" title="September 2010">September 2010</a></li>
+	<li><a href="http://inportb.com/2010/08/" title="August 2010">August 2010</a></li>
+	<li><a href="http://inportb.com/2010/07/" title="July 2010">July 2010</a></li>
+	<li><a href="http://inportb.com/2010/06/" title="June 2010">June 2010</a></li>
+	<li><a href="http://inportb.com/2010/05/" title="May 2010">May 2010</a></li>
+	<li><a href="http://inportb.com/2010/04/" title="April 2010">April 2010</a></li>
+	<li><a href="http://inportb.com/2010/03/" title="March 2010">March 2010</a></li>
+	<li><a href="http://inportb.com/2010/02/" title="February 2010">February 2010</a></li>
+	<li><a href="http://inportb.com/2010/01/" title="January 2010">January 2010</a></li>
+	<li><a href="http://inportb.com/2009/12/" title="December 2009">December 2009</a></li>
+	<li><a href="http://inportb.com/2009/11/" title="November 2009">November 2009</a></li>
+	<li><a href="http://inportb.com/2009/09/" title="September 2009">September 2009</a></li>
+	<li><a href="http://inportb.com/2009/08/" title="August 2009">August 2009</a></li>
+	<li><a href="http://inportb.com/2009/07/" title="July 2009">July 2009</a></li>
+	<li><a href="http://inportb.com/2009/05/" title="May 2009">May 2009</a></li>
+	<li><a href="http://inportb.com/2009/04/" title="April 2009">April 2009</a></li>
+	<li><a href="http://inportb.com/2009/03/" title="March 2009">March 2009</a></li>
+	<li><a href="http://inportb.com/2009/02/" title="February 2009">February 2009</a></li>
+	<li><a href="http://inportb.com/2009/01/" title="January 2009">January 2009</a></li>
+	<li><a href="http://inportb.com/2008/12/" title="December 2008">December 2008</a></li>
+	<li><a href="http://inportb.com/2008/11/" title="November 2008">November 2008</a></li>
+	<li><a href="http://inportb.com/2008/10/" title="October 2008">October 2008</a></li>
+	<li><a href="http://inportb.com/2008/09/" title="September 2008">September 2008</a></li>
+	<li><a href="http://inportb.com/2008/08/" title="August 2008">August 2008</a></li>
+	<li><a href="http://inportb.com/2008/07/" title="July 2008">July 2008</a></li>
+	<li><a href="http://inportb.com/2008/06/" title="June 2008">June 2008</a></li>
+	<li><a href="http://inportb.com/2008/05/" title="May 2008">May 2008</a></li>
+	<li><a href="http://inportb.com/2008/04/" title="April 2008">April 2008</a></li>
+	<li><a href="http://inportb.com/2008/03/" title="March 2008">March 2008</a></li>
+	<li><a href="http://inportb.com/2008/02/" title="February 2008">February 2008</a></li>
+	<li><a href="http://inportb.com/2008/01/" title="January 2008">January 2008</a></li>
+	<li><a href="http://inportb.com/2007/12/" title="December 2007">December 2007</a></li>
+	<li><a href="http://inportb.com/2007/10/" title="October 2007">October 2007</a></li>
+	<li><a href="http://inportb.com/2007/09/" title="September 2007">September 2007</a></li>
+	<li><a href="http://inportb.com/2007/08/" title="August 2007">August 2007</a></li>
+		</ul>
+</li>
+<li id="linkcat-2" class="widget widget_links"><h2 class="widgettitle">Links</h2>
+
+	<ul class="xoxo blogroll">
+<li><a href="http://chat.inportb.com/">#inportb on freenode</a></li>
+<li><a href="http://androidmixer.com/">AndroidMixer</a></li>
+<li><a href="http://changeeducate.org/" title="empowering social entrepreneurs">ChangeEducate</a></li>
+<li><a href="http://cmtorrent.inportb.com/" title="BitTorrent downloads for CyanogenMod ROM’s">CyanogenMod Torrent</a></li>
+<li><a href="http://discoverworlds.org/">Discover Worlds</a></li>
+<li><a href="http://www.gnu.org/philosophy/no-word-attachments.html">No Word Attachments</a></li>
+<li><a href="http://omegle.inportb.com/">Omegle::Log</a></li>
+
+	</ul>
+</li>
+
+<li id="meta-3" class="widget widget_meta"><h2 class="widgettitle">Meta</h2>
+			<ul>
+			<li><a href="http://inportb.com/wp-login.php?action=register">Register</a></li>			<li><a href="http://inportb.com/wp-login.php">Log in</a></li>
+			<li><a href="http://inportb.com/feed/" title="Syndicate this site using RSS 2.0">Entries <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="http://inportb.com/comments/feed/" title="The latest comments to all posts in RSS">Comments <abbr title="Really Simple Syndication">RSS</abbr></a></li>
+			<li><a href="http://wordpress.org/" title="Powered by WordPress, state-of-the-art semantic personal publishing platform.">WordPress.org</a></li>
+						</ul>
+</li>
+		</ul>
+	
+	</div><div class="clear" style="height: 35px">
+</div>
+</div>
+<!-- /Content --></div>
+<!-- /Wrapper -->
+<div id="footer">
+	<div id="gradfoot"></div>
+		
+	<div id="centfoot">	
+	<div id="aligner">
+		<ul id="footbar-left" class="footbar"><li></li>
+			
+		</ul>
+				<ul id="footbar-center" class="footbar"><li></li>
+			
+		</ul>
+	</div>
+		<ul id="footbar-right" class="footbar"><li></li>
+			
+		</ul>
+
+		
+		<p class="permfooter">
+			Desk theme by <a title="Nearfrog Designs" href="http://nearfrog.com/themes/desk">Nearfrog</a>
+			 | Valid <a href="http://validator.w3.org/check?uri=http://inportb.com" title="W3C Page Validator"> xhtml</a>
+			 | Powered by <a href="http://wordpress.org/" title="Wordpress.org">Wordpress</a></p>
+	</div>	
+	<!-- Start of StatCounter Code -->
+	<script type="text/javascript">
+	<!-- 
+		var sc_project=2202384; 
+		var sc_security="53271727"; 
+		var sc_invisible=1;
+	//-->
+	</script>
+	<script type="text/javascript" src="inportb%20%C2%BB%20Making%20an%20Opkg%20Package_files/counter_xhtml.js"></script>
+<noscript><div class="statcounter"><a title="web analytics" href="http://statcounter.com/"><img class="statcounter" src="http://c.statcounter.com/2202384/0/53271727/1/" alt="web analytics" /></a></div></noscript>	
+	<!-- End of StatCounter Code -->
+	
+</div>
+</div>
+<!-- /Container -->
+
+
+
+
+
+</body></html>

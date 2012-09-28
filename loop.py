@@ -1,20 +1,17 @@
 #!/bin/python
 import os, subprocess, time, shutil
-import deamonize
+import daemonize
 
-SRC = "/root/"
-DST = "/tmp/send/"
-senddir = "/tmp/send/"
-capdir = "/tmp/cap/"
 CAPSIZE = 70
+SENDDIR = "/tmp/send/"
+CAPDIR = "/tmp/cap/"
 
 def initializecapture():
-	
-	if not os.path.exists(senddir):
-		os.makedirs(senddir)
+	if not os.path.exists(SENDDIR):
+		os.makedirs(SENDDIR)
 		
-	if not os.path.exists(capdir):
-		os.makedirs(capdir)
+	if not os.path.exists(CAPDIR):
+		os.makedirs(CAPDIR)
 	tcpdump = subprocess.Popen(["tcpdump", "-s", str(CAPSIZE), "-w", "/tmp/cap/capture.pcap"], shell=False)
 	pid = str(tcpdump.pid)
 	f = open('/tmp/pid', 'w')
@@ -60,7 +57,7 @@ def capture():
 	#	shutil.move("cap/" +localtime+".pcap.gz", "send/" + localtime+".pcap.gz")
 	#	os.remove('cap/capture2compress.pcap')
 		
-		#subprocess.Popen("mv" + " " + "cap/*.gz" + " " + DST,shell=True)
+		#subprocess.Popen("mv" + " " + "cap/*.gz" + " " + SENDDIR,shell=True)
 		
 		pid = str(tcpdump.pid)
 		f = open('/tmp/pid', 'w')
@@ -73,7 +70,7 @@ def capture():
 		
 if __name__ == "__main__":
 
-	#retCode = deamonize.createDaemon()
+	#retCode = daemonize.createDaemon()
 
 	initializecapture()
 	while 1:

@@ -4,7 +4,7 @@
 
 IP=$1
 INSTALL_DIR="/root/"
-FILES="loop.py runcheck.py sendmail.py"
+FILES="loop.py runcheck.py sendmail.py daemonize.py"
 CHECKER="runcheck.py"
 TMP="root.crontab.bak"
 CRONJOB='    *        *          *             *               *           python /root/runcheck.py'

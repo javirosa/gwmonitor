@@ -4,14 +4,14 @@ from email.MIMEBase import MIMEBase
 from email.MIMEText import MIMEText
 from email import Encoders
 import os, subprocess, time
-import deamonize
+import daemonize
 
 SMTP_USER = ""
 SMTP_PWD = ""
 EMAIL_TO = "nbehdin@berkeley.edu"
 
-SENDMAILTIMER = '/tmp/sendtime'
-SENDDIR = '/tmp/send/'
+SENDMAILTIMER = "/tmp/sendtime"
+SENDDIR = "/tmp/send/"
 
 #tempfile = os.popen("pgrep -f sendmail.py")
 #pidlist = tempfile.readlines()
@@ -77,7 +77,7 @@ def loop():
 	f.close()		
 
 if __name__ == "__main__":
-	#retCode = deamonize.createDaemon()
+	#retCode = daemonize.createDaemon()
 	loop()
 	sys.exit(retCode)
 	

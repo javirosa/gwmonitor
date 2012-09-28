@@ -6,8 +6,8 @@ from email import Encoders
 import os, subprocess, time
 import deamonize
 
-SMTP_USER = "monitoring@green-wifi.com"
-SMTP_PWD = "green4chuuk"
+SMTP_USER = ""
+SMTP_PWD = ""
 EMAIL_TO = "nbehdin@berkeley.edu"
 
 SENDMAILTIMER = '/tmp/sendtime'

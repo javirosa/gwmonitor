@@ -6,9 +6,9 @@ from email import Encoders
 import os, subprocess, time
 import daemonize
 
-SMTP_USER = "monitoring@green-wifi.com"
-SMTP_PWD = "green4chuuk"
-EMAIL_TO = "javirosa1912@berkeley.edu"
+SMTP_USER = 
+SMTP_PWD = 
+EMAIL_TO = 
 
 SENDMAILTIMER = "/tmp/sendtime"
 SENDDIR = "/tmp/send/"
